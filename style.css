@@ -12,12 +12,12 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
     background: white;
     border-radius: 20px;
+    padding: 30px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    overflow: hidden;
     animation: fadeIn 0.5s ease-in;
 }
 
@@ -33,105 +33,184 @@ body {
 }
 
 h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.input-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 16px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 18px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+small {
+    display: block;
+    margin-top: 5px;
+    color: #888;
+    font-size: 12px;
+}
+
+.solve-btn {
+    width: 100%;
+    padding: 12px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 30px;
-    text-align: center;
-    font-size: 28px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-}
-
-.equation-box {
-    background: #f8f9fa;
-    padding: 20px;
-    text-align: center;
-    border-bottom: 3px solid #667eea;
-}
-
-.equation-box h2 {
-    color: #333;
-    font-size: 24px;
-}
-
-.equation {
-    color: #764ba2;
-    font-size: 32px;
-    font-weight: bold;
-    background: #f0f0f0;
-    padding: 10px 20px;
+    border: none;
     border-radius: 10px;
-    display: inline-block;
-    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.solve-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.solve-btn:active {
+    transform: translateY(0);
+}
+
+.examples {
+    margin-top: 20px;
+}
+
+.examples h3 {
+    color: #555;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.example-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.example-btn {
+    display: inline-block;
+    padding: 8px 15px;
+    background: #e9ecef;
+    color: #495057;
+    text-decoration: none;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.example-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Результаты */
 .result {
-    padding: 30px;
+    margin-top: 30px;
+    padding: 25px;
+    border-radius: 15px;
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .result.success {
-    background: white;
+    background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+    border-left: 5px solid #2ecc71;
 }
 
 .result.error {
     background: #fee;
-    color: #c33;
+    border-left: 5px solid #e74c3c;
 }
 
 .result h3 {
-    color: #667eea;
-    margin-bottom: 20px;
-    font-size: 24px;
-    border-left: 4px solid #667eea;
-    padding-left: 15px;
+    margin-bottom: 15px;
+    color: #333;
 }
 
 .result-details {
-    background: #f8f9fa;
-    padding: 20px;
+    background: rgba(255,255,255,0.8);
+    padding: 15px;
     border-radius: 10px;
     margin-bottom: 20px;
 }
 
 .result-details p {
-    margin: 10px 0;
+    margin: 8px 0;
     font-size: 16px;
-    color: #555;
-    padding: 5px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.result-details p:last-child {
-    border-bottom: none;
-}
-
-.result-details strong {
-    color: #333;
-    display: inline-block;
-    min-width: 180px;
 }
 
 .solution {
     font-size: 24px;
     font-weight: bold;
-    color: #4caf50;
-    background: #e8f5e9;
+    color: #2ecc71;
+    background: rgba(46, 204, 113, 0.2);
     padding: 5px 15px;
     border-radius: 8px;
     display: inline-block;
 }
 
 .steps {
-    background: #fff3e0;
-    padding: 20px;
+    background: rgba(255,255,255,0.9);
+    padding: 15px;
     border-radius: 10px;
-    margin: 20px 0;
-    border-left: 4px solid #ff9800;
+    margin-bottom: 20px;
 }
 
 .steps h4 {
-    color: #ff9800;
-    margin-bottom: 15px;
-    font-size: 18px;
+    margin-bottom: 10px;
+    color: #555;
 }
 
 .steps ol {
@@ -139,52 +218,54 @@ h1 {
 }
 
 .steps li {
-    margin: 10px 0;
-    padding: 5px;
-    color: #555;
+    margin: 8px 0;
     font-family: 'Courier New', monospace;
 }
 
 .verification {
-    background: #e8f5e9;
-    padding: 20px;
+    background: rgba(255,255,255,0.9);
+    padding: 15px;
     border-radius: 10px;
-    margin-top: 20px;
-    border-left: 4px solid #4caf50;
 }
 
 .verification h4 {
-    color: #4caf50;
     margin-bottom: 10px;
-    font-size: 18px;
+    color: #555;
 }
 
 .verification p {
-    font-size: 18px;
-    font-weight: bold;
-    color: #2e7d32;
+    font-size: 16px;
     font-family: 'Courier New', monospace;
 }
 
-@media (max-width: 768px) {
+.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
     .container {
-        margin: 10px;
+        padding: 20px;
     }
     
     h1 {
         font-size: 22px;
-        padding: 20px;
-    }
-    
-    .equation {
-        font-size: 24px;
-    }
-    
-    .result-details strong {
-        min-width: 140px;
     }
     
     .solution {
-        font-size: 20px;
+        font-size: 18px;
+    }
+    
+    .example-btn {
+        font-size: 12px;
+        padding: 5px 10px;
     }
 }
