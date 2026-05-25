@@ -1,48 +1,64 @@
 <?php
-function buildDeleteList($pdo) {
-    $message = '';
-    
-    // Проверяем, было ли удаление
-    if (isset($_GET['deleted'])) {
-        $message = '<p class="success">Запись удалена</p>';
-    }
-    
-    // Получаем список контактов
-    $stmt = $pdo->query("SELECT id, surname, name, lastname FROM contacts ORDER BY surname ASC");
-    $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    if (empty($contacts)) {
-        return $message . '<p>Нет записей для удаления.</p>';
-    }
-    
-    $html = $message;
-    $html .= '<div class="delete-list">';
-    foreach ($contacts as $contact) {
-        $initials = $contact['surname'] . ' ' . mb_substr($contact['name'], 0, 1) . '.';
-        if (!empty($contact['lastname'])) {
-            $initials .= mb_substr($contact['lastname'], 0, 1) . '.';
-        }
-        $html .= "<div style='margin:10px 0;'>
-                    <a href='index.php?action=delete&delete_id={$contact['id']}' 
-                       onclick='return confirm(\"Удалить запись \\\"$initials\\\"?\");'
-                       style='padding:5px 10px; text-decoration:none; border:1px solid #ccc; display:inline-block;'>
-                       $initials
-                    </a>
-                  </div>";
-    }
-    $html .= '</div>';
-    
-    return $html;
+if (basename($_SERVER['SCRIPT_NAME']) !== 'index.php') {
+    http_response_code(404);
+    exit;
 }
 
-// Функция удаления контакта
-function deleteContact($pdo, $id) {
-    try {
-        $stmt = $pdo->prepare("DELETE FROM contacts WHERE id = ?");
-        $stmt->execute([$id]);
-        return true;
-    } catch (PDOException $e) {
-        return false;
-    }
+function getInitials(string $name, string $lastname): string
+{
+    $firstInitial = $name !== '' ? mb_substr($name, 0, 1) . '.' : '';
+    $secondInitial = $lastname !== '' ? mb_substr($lastname, 0, 1) . '.' : '';
+
+    return trim($firstInitial . ' ' . $secondInitial);
 }
-?>
+
+function renderDelete(PDO $pdo): string
+{
+    $message = '';
+
+    if (isset($_GET['id'])) {
+        $id = (int)$_GET['id'];
+
+        $stmt = $pdo->prepare("SELECT * FROM contacts WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $contact = $stmt->fetch();
+
+        if ($contact) {
+            $deleteStmt = $pdo->prepare("DELETE FROM contacts WHERE id = :id");
+            $deleteStmt->execute([':id' => $id]);
+
+            $message = 'Запись с фамилией ' . e($contact['surname']) . ' удалена';
+        }
+    }
+
+    $contacts = $pdo
+        ->query("SELECT * FROM contacts ORDER BY surname ASC, name ASC")
+        ->fetchAll();
+
+    ob_start();
+    ?>
+
+    <h1>Удаление записи</h1>
+
+    <?php if ($message !== ''): ?>
+        <p class="message success"><?= $message ?></p>
+    <?php endif; ?>
+
+    <?php if (count($contacts) === 0): ?>
+        <p class="empty">Записей пока нет.</p>
+    <?php else: ?>
+        <div class="delete-list">
+            <?php foreach ($contacts as $contact): ?>
+                <a
+                    class="delete-link"
+                    href="./index.php?action=delete&id=<?= (int)$contact['id'] ?>"
+                >
+                    <?= e($contact['surname'] . ' ' . getInitials($contact['name'], $contact['lastname'] ?? '')) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php
+    return ob_get_clean();
+}

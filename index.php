@@ -1,70 +1,100 @@
 <?php
-session_start();
-require_once 'menu.php';
-require_once 'viewer.php';
-require_once 'add.php';
-require_once 'edit.php';
-require_once 'delete.php';
+declare(strict_types=1);
 
-// Подключение к БД
-$host = 'localhost';
-$dbname = 'phonebook';
-$username = 'root';
-$password = 'Kakein0408';  // Если пароль не установлен, оставьте пустым
+$dbDir = __DIR__ . '/data';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Ошибка подключения: " . $e->getMessage());
+if (!is_dir($dbDir)) {
+    mkdir($dbDir, 0777, true);
 }
 
-// Определяем активный пункт меню
-$active = $_GET['action'] ?? 'view';
-$sort = $_GET['sort'] ?? 'created';
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$edit_id = isset($_GET['edit_id']) ? (int)$_GET['edit_id'] : null;
-$delete_id = isset($_GET['delete_id']) ? (int)$_GET['delete_id'] : null;
+$pdo = new PDO('sqlite:' . $dbDir . '/notebook.sqlite');
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-// Обработка удаления
-if ($delete_id) {
-    deleteContact($pdo, $delete_id);
-    header("Location: index.php?action=delete&deleted=1");
-    exit;
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS contacts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        surname TEXT NOT NULL,
+        name TEXT NOT NULL,
+        lastname TEXT,
+        gender TEXT,
+        birth_date TEXT,
+        phone TEXT,
+        address TEXT,
+        email TEXT,
+        comment TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+");
+
+function e(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+}
+
+require_once __DIR__ . '/menu.php';
+require_once __DIR__ . '/viewer.php';
+require_once __DIR__ . '/add.php';
+require_once __DIR__ . '/edit.php';
+require_once __DIR__ . '/delete.php';
+
+$allowedActions = ['view', 'add', 'edit', 'delete'];
+$action = $_GET['action'] ?? 'view';
+
+if (!in_array($action, $allowedActions, true)) {
+    $action = 'view';
+}
+
+$sort = $_GET['sort'] ?? 'created';
+$page = (int)($_GET['page'] ?? 1);
+
+if ($page < 1) {
+    $page = 1;
+}
+
+$content = '';
+
+if ($action === 'view') {
+    $content = renderViewer($pdo, $sort, $page);
+}
+
+if ($action === 'add') {
+    $content = renderAdd($pdo);
+}
+
+if ($action === 'edit') {
+    $content = renderEdit($pdo);
+}
+
+if ($action === 'delete') {
+    $content = renderDelete($pdo);
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Записная книжка</title>
-    <link rel="stylesheet" href="style%20(5).css">
+    <title>Notebook</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    <main>
-        <?= buildMenu($active, $sort) ?>
-        
-        <div class="content">
-            <?php
-            switch($active) {
-                case 'view':
-                    echo buildViewer($pdo, $sort, $page);
-                    break;
-                case 'add':
-                    echo buildAddForm($pdo);
-                    break;
-                case 'edit':
-                    echo buildEditForm($pdo, $edit_id);
-                    break;
-                case 'delete':
-                    echo buildDeleteList($pdo);
-                    break;
-                default:
-                    echo buildViewer($pdo, $sort, $page);
-            }
-            ?>
-        </div>
+    <header class="header">
+        <img class="logo" src="/logo.png" alt="logo">
+        <div class="title">Домашняя работа: Notebook</div>
+        <div class="header-spacer"></div>
+    </header>
+
+    <main class="main">
+        <?= getMenu() ?>
+
+        <section class="content">
+            <?= $content ?>
+        </section>
     </main>
-    <footer></footer>
+
+    <footer class="footer">
+        задание для самостоятельно работы
+    </footer>
 </body>
 </html>
