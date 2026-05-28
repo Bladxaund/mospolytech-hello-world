@@ -1,102 +1,71 @@
 <?php
-if (basename($_SERVER['SCRIPT_NAME']) !== 'index.php') {
-    http_response_code(404);
-    exit;
-}
+require_once 'storage.php';
 
-function renderViewer(PDO $pdo, string $sort, int $page): string
-{
-    $sortMap = [
-        'created' => 'id ASC',
-        'surname' => 'surname ASC, name ASC',
-        'birth_date' => 'birth_date ASC',
-    ];
-
-    if (!array_key_exists($sort, $sortMap)) {
-        $sort = 'created';
+function renderViewer($sort = 'created_at', $page = 1) {
+    $records = loadRecords();
+    
+    // Сортировка
+    usort($records, function($a, $b) use ($sort) {
+        if ($sort == 'created_at') {
+            return strtotime($a['created_at']) - strtotime($b['created_at']);
+        } elseif ($sort == 'surname') {
+            $cmp = strcmp($a['surname'], $b['surname']);
+            if ($cmp == 0) return strcmp($a['name'], $b['name']);
+            return $cmp;
+        } elseif ($sort == 'date') {
+            return strcmp($a['date'], $b['date']);
+        }
+        return 0;
+    });
+    
+    // Пагинация
+    $perPage = 10;
+    $total = count($records);
+    $totalPages = ceil($total / $perPage);
+    $offset = ($page - 1) * $perPage;
+    $pageRecords = array_slice($records, $offset, $perPage);
+    
+    // Вывод таблицы
+    $html = '<div class="viewer">';
+    
+    if (empty($pageRecords)) {
+        $html .= '<p>Нет записей в книжке</p>';
+    } else {
+        $html .= '<table border="1" cellpadding="5" cellspacing="0">';
+        $html .= '<tr>';
+        $html .= '<th>Фамилия</th><th>Имя</th><th>Отчество</th><th>Пол</th>';
+        $html .= '<th>Дата рождения</th><th>Телефон</th><th>Адрес</th>';
+        $html .= '<th>Email</th><th>Комментарий</th>';
+        $html .= '</tr>';
+        
+        foreach ($pageRecords as $record) {
+            $html .= '<tr>';
+            $html .= '<td>' . htmlspecialchars($record['surname']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['name']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['lastname']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['gender']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['date']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['phone']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['location']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['email']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($record['comment']) . '</td>';
+            $html .= '</tr>';
+        }
+        
+        $html .= '</table>';
+        
+        // Пагинация
+        if ($totalPages > 1) {
+            $html .= '<div class="pagination">';
+            for ($i = 1; $i <= $totalPages; $i++) {
+                $active = ($i == $page) ? ' class="current"' : '';
+                $html .= "<a href=\"index.php?action=view&sort={$sort}&page={$i}\"{$active}>{$i}</a>";
+            }
+            $html .= '</div>';
+        }
     }
-
-    $limit = 10;
-    $offset = ($page - 1) * $limit;
-
-    $total = (int)$pdo->query("SELECT COUNT(*) FROM contacts")->fetchColumn();
-    $totalPages = max(1, (int)ceil($total / $limit));
-
-    if ($page > $totalPages) {
-        $page = $totalPages;
-        $offset = ($page - 1) * $limit;
-    }
-
-    $sql = "
-        SELECT *
-        FROM contacts
-        ORDER BY {$sortMap[$sort]}
-        LIMIT :limit OFFSET :offset
-    ";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
-
-    $contacts = $stmt->fetchAll();
-
-    ob_start();
-    ?>
-
-    <h1>Записная книжка</h1>
-
-    <?php if (count($contacts) === 0): ?>
-        <p class="empty">Записей пока нет.</p>
-    <?php else: ?>
-        <table class="contacts-table">
-            <thead>
-                <tr>
-                    <th>№</th>
-                    <th>Фамилия</th>
-                    <th>Имя</th>
-                    <th>Отчество</th>
-                    <th>Пол</th>
-                    <th>Дата рождения</th>
-                    <th>Телефон</th>
-                    <th>Адрес</th>
-                    <th>E-mail</th>
-                    <th>Комментарий</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <?php foreach ($contacts as $index => $contact): ?>
-                    <tr>
-                        <td><?= $offset + $index + 1 ?></td>
-                        <td><?= e($contact['surname']) ?></td>
-                        <td><?= e($contact['name']) ?></td>
-                        <td><?= e($contact['lastname'] ?? '') ?></td>
-                        <td><?= e($contact['gender'] ?? '') ?></td>
-                        <td><?= e($contact['birth_date'] ?? '') ?></td>
-                        <td><?= e($contact['phone'] ?? '') ?></td>
-                        <td><?= e($contact['address'] ?? '') ?></td>
-                        <td><?= e($contact['email'] ?? '') ?></td>
-                        <td><?= e($contact['comment'] ?? '') ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <?php if ($totalPages > 1): ?>
-            <div class="pagination">
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <a
-                        class="page-link <?= $page === $i ? 'active' : '' ?>"
-                        href="./index.php?action=view&sort=<?= e($sort) ?>&page=<?= $i ?>"
-                    >
-                        <?= $i ?>
-                    </a>
-                <?php endfor; ?>
-            </div>
-        <?php endif; ?>
-    <?php endif; ?>
-
-    <?php
-    return ob_get_clean();
+    
+    $html .= '</div>';
+    return $html;
 }
+?>

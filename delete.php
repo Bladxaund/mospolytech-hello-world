@@ -1,64 +1,65 @@
 <?php
-if (basename($_SERVER['SCRIPT_NAME']) !== 'index.php') {
-    http_response_code(404);
-    exit;
-}
+require_once 'storage.php';
 
-function getInitials(string $name, string $lastname): string
-{
-    $firstInitial = $name !== '' ? mb_substr($name, 0, 1) . '.' : '';
-    $secondInitial = $lastname !== '' ? mb_substr($lastname, 0, 1) . '.' : '';
-
-    return trim($firstInitial . ' ' . $secondInitial);
-}
-
-function renderDelete(PDO $pdo): string
-{
+function handleDelete() {
+    $records = loadRecords();
     $message = '';
-
-    if (isset($_GET['id'])) {
-        $id = (int)$_GET['id'];
-
-        $stmt = $pdo->prepare("SELECT * FROM contacts WHERE id = :id");
-        $stmt->execute([':id' => $id]);
-        $contact = $stmt->fetch();
-
-        if ($contact) {
-            $deleteStmt = $pdo->prepare("DELETE FROM contacts WHERE id = :id");
-            $deleteStmt->execute([':id' => $id]);
-
-            $message = 'Запись с фамилией ' . e($contact['surname']) . ' удалена';
+    $messageClass = '';
+    
+    // Сортируем записи
+    usort($records, function($a, $b) {
+        return strcmp($a['surname'], $b['surname']);
+    });
+    
+    // Обработка удаления
+    if (isset($_GET['delete_id'])) {
+        $deleteId = (int)$_GET['delete_id'];
+        $deletedRecord = null;
+        $newRecords = [];
+        
+        foreach ($records as $record) {
+            if ($record['id'] == $deleteId) {
+                $deletedRecord = $record;
+            } else {
+                $newRecords[] = $record;
+            }
+        }
+        
+        if ($deletedRecord && saveRecords($newRecords)) {
+            $message = "Запись с фамилией {$deletedRecord['surname']} удалена";
+            $messageClass = 'success';
+            $records = $newRecords;
+            // Пересортируем обновлённый список
+            usort($records, function($a, $b) {
+                return strcmp($a['surname'], $b['surname']);
+            });
+        } else {
+            $message = "Ошибка: запись не удалена";
+            $messageClass = 'error';
         }
     }
-
-    $contacts = $pdo
-        ->query("SELECT * FROM contacts ORDER BY surname ASC, name ASC")
-        ->fetchAll();
-
-    ob_start();
-    ?>
-
-    <h1>Удаление записи</h1>
-
-    <?php if ($message !== ''): ?>
-        <p class="message success"><?= $message ?></p>
-    <?php endif; ?>
-
-    <?php if (count($contacts) === 0): ?>
-        <p class="empty">Записей пока нет.</p>
-    <?php else: ?>
-        <div class="delete-list">
-            <?php foreach ($contacts as $contact): ?>
-                <a
-                    class="delete-link"
-                    href="./index.php?action=delete&id=<?= (int)$contact['id'] ?>"
-                >
-                    <?= e($contact['surname'] . ' ' . getInitials($contact['name'], $contact['lastname'] ?? '')) ?>
-                </a>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-
-    <?php
-    return ob_get_clean();
+    
+    // Выводим интерфейс
+    $html = '<div class="delete-container">';
+    
+    if ($message) {
+        $html .= "<div class=\"{$messageClass}\">{$message}</div>";
+    }
+    
+    if (empty($records)) {
+        $html .= '<p>Нет записей для удаления</p>';
+    } else {
+        $html .= '<h3>Выберите запись для удаления:</h3>';
+        $html .= '<div class="records-list">';
+        foreach ($records as $record) {
+            $fullName = htmlspecialchars($record['surname'] . ' ' . $record['name'] . ' ' . $record['lastname']);
+            $html .= "<div><a href=\"index.php?action=delete&delete_id={$record['id']}\" 
+                           onclick=\"return confirm('Удалить запись: {$fullName}?')\">{$fullName}</a></div>";
+        }
+        $html .= '</div>';
+    }
+    
+    $html .= '</div>';
+    return $html;
 }
+?>

@@ -1,172 +1,141 @@
 <?php
-if (basename($_SERVER['SCRIPT_NAME']) !== 'index.php') {
-    http_response_code(404);
-    exit;
-}
+require_once 'storage.php';
 
-function renderEdit(PDO $pdo): string
-{
+function handleEdit() {
+    $records = loadRecords();
     $message = '';
     $messageClass = '';
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === 'edit') {
-        $id = (int)($_POST['id'] ?? 0);
-
-        $values = [
-            'surname' => trim($_POST['surname'] ?? ''),
-            'name' => trim($_POST['name'] ?? ''),
-            'lastname' => trim($_POST['lastname'] ?? ''),
-            'gender' => trim($_POST['gender'] ?? ''),
-            'date' => trim($_POST['date'] ?? ''),
-            'phone' => trim($_POST['phone'] ?? ''),
-            'location' => trim($_POST['location'] ?? ''),
-            'email' => trim($_POST['email'] ?? ''),
-            'comment' => trim($_POST['comment'] ?? ''),
-        ];
-
-        if ($id <= 0 || $values['surname'] === '' || $values['name'] === '') {
-            $message = 'Ошибка: запись не изменена';
-            $messageClass = 'error';
-        } else {
-            try {
-                $stmt = $pdo->prepare("
-                    UPDATE contacts
-                    SET
-                        surname = :surname,
-                        name = :name,
-                        lastname = :lastname,
-                        gender = :gender,
-                        birth_date = :birth_date,
-                        phone = :phone,
-                        address = :address,
-                        email = :email,
-                        comment = :comment
-                    WHERE id = :id
-                ");
-
-                $stmt->execute([
-                    ':surname' => $values['surname'],
-                    ':name' => $values['name'],
-                    ':lastname' => $values['lastname'],
-                    ':gender' => $values['gender'],
-                    ':birth_date' => $values['date'],
-                    ':phone' => $values['phone'],
-                    ':address' => $values['location'],
-                    ':email' => $values['email'],
-                    ':comment' => $values['comment'],
-                    ':id' => $id,
-                ]);
-
-                $message = 'Запись изменена';
-                $messageClass = 'success';
-
-                $_GET['id'] = (string)$id;
-            } catch (Throwable $error) {
-                $message = 'Ошибка: запись не изменена';
-                $messageClass = 'error';
-            }
+    
+    // Сортируем записи для списка
+    $sortedRecords = $records;
+    usort($sortedRecords, function($a, $b) {
+        $cmp = strcmp($a['surname'], $b['surname']);
+        if ($cmp == 0) return strcmp($a['name'], $b['name']);
+        return $cmp;
+    });
+    
+    // Определяем выбранную запись
+    $selectedId = isset($_GET['edit_id']) ? (int)$_GET['edit_id'] : 
+                  (isset($_POST['edit_id']) ? (int)$_POST['edit_id'] : 
+                  ($sortedRecords[0]['id'] ?? null));
+    
+    $currentRecord = null;
+    foreach ($records as $record) {
+        if ($record['id'] == $selectedId) {
+            $currentRecord = $record;
+            break;
         }
     }
-
-    $contacts = $pdo
-        ->query("SELECT * FROM contacts ORDER BY surname ASC, name ASC")
-        ->fetchAll();
-
-    if (count($contacts) === 0) {
-        return '<h1>Редактирование записи</h1><p class="empty">Записей пока нет.</p>';
+    
+    // Обработка отправки формы
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update'])) {
+        $updated = false;
+        foreach ($records as &$record) {
+            if ($record['id'] == $_POST['edit_id']) {
+                $record['surname'] = $_POST['surname'];
+                $record['name'] = $_POST['name'];
+                $record['lastname'] = $_POST['lastname'];
+                $record['gender'] = $_POST['gender'];
+                $record['date'] = $_POST['date'];
+                $record['phone'] = $_POST['phone'];
+                $record['location'] = $_POST['location'];
+                $record['email'] = $_POST['email'];
+                $record['comment'] = $_POST['comment'];
+                $updated = true;
+                break;
+            }
+        }
+        
+        if ($updated && saveRecords($records)) {
+            $message = 'Запись успешно обновлена';
+            $messageClass = 'success';
+            // Обновляем текущую запись
+            $currentRecord = $_POST;
+            $currentRecord['id'] = $_POST['edit_id'];
+        } else {
+            $message = 'Ошибка: запись не обновлена';
+            $messageClass = 'error';
+        }
     }
-
-    $currentId = (int)($_GET['id'] ?? $contacts[0]['id']);
-
-    $stmt = $pdo->prepare("SELECT * FROM contacts WHERE id = :id");
-    $stmt->execute([':id' => $currentId]);
-    $currentContact = $stmt->fetch();
-
-    if (!$currentContact) {
-        $currentContact = $contacts[0];
-        $currentId = (int)$currentContact['id'];
+    
+    // Выводим интерфейс
+    $html = '<div class="edit-container">';
+    
+    // Список записей
+    $html .= '<div class="records-list">';
+    $html .= '<h3>Выберите запись для редактирования:</h3>';
+    foreach ($sortedRecords as $record) {
+        $active = ($record['id'] == $selectedId) ? ' class="current"' : '';
+        $fullName = htmlspecialchars($record['surname'] . ' ' . $record['name'] . ' ' . $record['lastname']);
+        $html .= "<div{$active}><a href=\"index.php?action=edit&edit_id={$record['id']}\">{$fullName}</a></div>";
     }
-
-    ob_start();
-    ?>
-
-    <h1>Редактирование записи</h1>
-
-    <?php if ($message !== ''): ?>
-        <p class="message <?= e($messageClass) ?>">
-            <?= e($message) ?>
-        </p>
-    <?php endif; ?>
-
-    <div class="edit-layout">
-        <aside class="records-list">
-            <?php foreach ($contacts as $contact): ?>
-                <a
-                    class="record-link <?= (int)$contact['id'] === $currentId ? 'current' : '' ?>"
-                    href="./index.php?action=edit&id=<?= (int)$contact['id'] ?>"
-                >
-                    <?= e($contact['surname'] . ' ' . $contact['name']) ?>
-                </a>
-            <?php endforeach; ?>
-        </aside>
-
-        <form class="contact-form" method="post" action="./index.php?action=edit&id=<?= $currentId ?>">
-            <input type="hidden" name="form_action" value="edit">
-            <input type="hidden" name="id" value="<?= $currentId ?>">
-
-            <div class="form-row">
-                <label>Фамилия</label>
-                <input type="text" name="surname" value="<?= e($currentContact['surname']) ?>" required>
-            </div>
-
-            <div class="form-row">
-                <label>Имя</label>
-                <input type="text" name="name" value="<?= e($currentContact['name']) ?>" required>
-            </div>
-
-            <div class="form-row">
-                <label>Отчество</label>
-                <input type="text" name="lastname" value="<?= e($currentContact['lastname'] ?? '') ?>">
-            </div>
-
-            <div class="form-row">
-                <label>Пол</label>
-                <select name="gender">
-                    <option value="">Выберите пол</option>
-                    <option value="мужской" <?= ($currentContact['gender'] ?? '') === 'мужской' ? 'selected' : '' ?>>мужской</option>
-                    <option value="женский" <?= ($currentContact['gender'] ?? '') === 'женский' ? 'selected' : '' ?>>женский</option>
-                </select>
-            </div>
-
-            <div class="form-row">
-                <label>Дата рождения</label>
-                <input type="date" name="date" value="<?= e($currentContact['birth_date'] ?? '') ?>">
-            </div>
-
-            <div class="form-row">
-                <label>Телефон</label>
-                <input type="text" name="phone" value="<?= e($currentContact['phone'] ?? '') ?>">
-            </div>
-
-            <div class="form-row">
-                <label>Адрес</label>
-                <input type="text" name="location" value="<?= e($currentContact['address'] ?? '') ?>">
-            </div>
-
-            <div class="form-row">
-                <label>E-mail</label>
-                <input type="email" name="email" value="<?= e($currentContact['email'] ?? '') ?>">
-            </div>
-
-            <div class="form-row">
-                <label>Комментарий</label>
-                <textarea name="comment"><?= e($currentContact['comment'] ?? '') ?></textarea>
-            </div>
-
-            <button class="form-btn" type="submit">Сохранить</button>
-        </form>
-    </div>
-
-    <?php
-    return ob_get_clean();
+    $html .= '</div>';
+    
+    // Форма редактирования
+    if ($currentRecord) {
+        if ($message) {
+            $html .= "<div class=\"{$messageClass}\">{$message}</div>";
+        }
+        
+        $html .= '<form method="post" class="form-container">';
+        $html .= '<input type="hidden" name="edit_id" value="' . $currentRecord['id'] . '">';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Фамилия:</label>';
+        $html .= '<input type="text" name="surname" value="' . htmlspecialchars($currentRecord['surname'] ?? '') . '" required>';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Имя:</label>';
+        $html .= '<input type="text" name="name" value="' . htmlspecialchars($currentRecord['name'] ?? '') . '" required>';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Отчество:</label>';
+        $html .= '<input type="text" name="lastname" value="' . htmlspecialchars($currentRecord['lastname'] ?? '') . '">';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Пол:</label>';
+        $selected = $currentRecord['gender'] ?? '';
+        $html .= '<select name="gender">';
+        $html .= '<option value="мужской"' . ($selected == 'мужской' ? ' selected' : '') . '>мужской</option>';
+        $html .= '<option value="женский"' . ($selected == 'женский' ? ' selected' : '') . '>женский</option>';
+        $html .= '</select>';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Дата рождения:</label>';
+        $html .= '<input type="date" name="date" value="' . htmlspecialchars($currentRecord['date'] ?? '') . '">';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Телефон:</label>';
+        $html .= '<input type="text" name="phone" value="' . htmlspecialchars($currentRecord['phone'] ?? '') . '">';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Адрес:</label>';
+        $html .= '<input type="text" name="location" value="' . htmlspecialchars($currentRecord['location'] ?? '') . '">';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Email:</label>';
+        $html .= '<input type="email" name="email" value="' . htmlspecialchars($currentRecord['email'] ?? '') . '">';
+        $html .= '</div>';
+        
+        $html .= '<div class="form-group">';
+        $html .= '<label>Комментарий:</label>';
+        $html .= '<textarea name="comment">' . htmlspecialchars($currentRecord['comment'] ?? '') . '</textarea>';
+        $html .= '</div>';
+        
+        $html .= '<button type="submit" name="update" class="form-btn">Обновить запись</button>';
+        $html .= '</form>';
+    } else {
+        $html .= '<p>Нет записей для редактирования</p>';
+    }
+    
+    $html .= '</div>';
+    return $html;
 }
+?>

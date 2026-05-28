@@ -1,152 +1,108 @@
 <?php
-if (basename($_SERVER['SCRIPT_NAME']) !== 'index.php') {
-    http_response_code(404);
-    exit;
-}
+require_once 'storage.php';
 
-function renderAdd(PDO $pdo): string
-{
+function handleAdd() {
     $message = '';
     $messageClass = '';
-
-    $values = [
-        'surname' => '',
-        'name' => '',
-        'lastname' => '',
-        'gender' => '',
-        'date' => '',
-        'phone' => '',
-        'location' => '',
-        'email' => '',
-        'comment' => '',
-    ];
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === 'add') {
-        foreach ($values as $key => $value) {
-            $values[$key] = trim($_POST[$key] ?? '');
-        }
-
-        if ($values['surname'] === '' || $values['name'] === '') {
-            $message = 'Ошибка: запись не добавлена';
+    
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add'])) {
+        $records = loadRecords();
+        
+        // Проверка обязательных полей
+        if (empty($_POST['surname']) || empty($_POST['name'])) {
+            $message = 'Ошибка: Фамилия и Имя обязательны для заполнения';
             $messageClass = 'error';
         } else {
-            try {
-                $stmt = $pdo->prepare("
-                    INSERT INTO contacts (
-                        surname,
-                        name,
-                        lastname,
-                        gender,
-                        birth_date,
-                        phone,
-                        address,
-                        email,
-                        comment
-                    )
-                    VALUES (
-                        :surname,
-                        :name,
-                        :lastname,
-                        :gender,
-                        :birth_date,
-                        :phone,
-                        :address,
-                        :email,
-                        :comment
-                    )
-                ");
-
-                $stmt->execute([
-                    ':surname' => $values['surname'],
-                    ':name' => $values['name'],
-                    ':lastname' => $values['lastname'],
-                    ':gender' => $values['gender'],
-                    ':birth_date' => $values['date'],
-                    ':phone' => $values['phone'],
-                    ':address' => $values['location'],
-                    ':email' => $values['email'],
-                    ':comment' => $values['comment'],
-                ]);
-
+            // Создаём новую запись
+            $newRecord = [
+                'id' => getNextId(),
+                'surname' => $_POST['surname'],
+                'name' => $_POST['name'],
+                'lastname' => $_POST['lastname'] ?? '',
+                'gender' => $_POST['gender'] ?? '',
+                'date' => $_POST['date'] ?? '',
+                'phone' => $_POST['phone'] ?? '',
+                'location' => $_POST['location'] ?? '',
+                'email' => $_POST['email'] ?? '',
+                'comment' => $_POST['comment'] ?? '',
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            
+            $records[] = $newRecord;
+            
+            if (saveRecords($records)) {
                 $message = 'Запись добавлена';
                 $messageClass = 'success';
-
-                foreach ($values as $key => $value) {
-                    $values[$key] = '';
-                }
-            } catch (Throwable $error) {
+                // Очищаем POST для сброса формы
+                $_POST = [];
+            } else {
                 $message = 'Ошибка: запись не добавлена';
                 $messageClass = 'error';
             }
         }
     }
-
-    ob_start();
-    ?>
-
-    <h1>Добавление записи</h1>
-
-    <?php if ($message !== ''): ?>
-        <p class="message <?= e($messageClass) ?>">
-            <?= e($message) ?>
-        </p>
-    <?php endif; ?>
-
-    <form class="contact-form" method="post" action="./index.php?action=add">
-        <input type="hidden" name="form_action" value="add">
-
-        <div class="form-row">
-            <label>Фамилия</label>
-            <input type="text" name="surname" value="<?= e($values['surname']) ?>" required>
-        </div>
-
-        <div class="form-row">
-            <label>Имя</label>
-            <input type="text" name="name" value="<?= e($values['name']) ?>" required>
-        </div>
-
-        <div class="form-row">
-            <label>Отчество</label>
-            <input type="text" name="lastname" value="<?= e($values['lastname']) ?>">
-        </div>
-
-        <div class="form-row">
-            <label>Пол</label>
-            <select name="gender">
-                <option value="">Выберите пол</option>
-                <option value="мужской" <?= $values['gender'] === 'мужской' ? 'selected' : '' ?>>мужской</option>
-                <option value="женский" <?= $values['gender'] === 'женский' ? 'selected' : '' ?>>женский</option>
-            </select>
-        </div>
-
-        <div class="form-row">
-            <label>Дата рождения</label>
-            <input type="date" name="date" value="<?= e($values['date']) ?>">
-        </div>
-
-        <div class="form-row">
-            <label>Телефон</label>
-            <input type="text" name="phone" value="<?= e($values['phone']) ?>">
-        </div>
-
-        <div class="form-row">
-            <label>Адрес</label>
-            <input type="text" name="location" value="<?= e($values['location']) ?>">
-        </div>
-
-        <div class="form-row">
-            <label>E-mail</label>
-            <input type="email" name="email" value="<?= e($values['email']) ?>">
-        </div>
-
-        <div class="form-row">
-            <label>Комментарий</label>
-            <textarea name="comment"><?= e($values['comment']) ?></textarea>
-        </div>
-
-        <button class="form-btn" type="submit">Добавить</button>
-    </form>
-
-    <?php
-    return ob_get_clean();
+    
+    // Выводим форму
+    $html = '<div class="add-form">';
+    
+    if ($message) {
+        $html .= "<div class=\"{$messageClass}\">{$message}</div>";
+    }
+    
+    $html .= '<form method="post" class="form-container">';
+    $html .= '<div class="form-group">';
+    $html .= '<label>Фамилия *:</label>';
+    $html .= '<input type="text" name="surname" value="' . htmlspecialchars($_POST['surname'] ?? '') . '" required>';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Имя *:</label>';
+    $html .= '<input type="text" name="name" value="' . htmlspecialchars($_POST['name'] ?? '') . '" required>';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Отчество:</label>';
+    $html .= '<input type="text" name="lastname" value="' . htmlspecialchars($_POST['lastname'] ?? '') . '">';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Пол:</label>';
+    $selected = $_POST['gender'] ?? '';
+    $html .= '<select name="gender">';
+    $html .= '<option value="мужской"' . ($selected == 'мужской' ? ' selected' : '') . '>мужской</option>';
+    $html .= '<option value="женский"' . ($selected == 'женский' ? ' selected' : '') . '>женский</option>';
+    $html .= '</select>';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Дата рождения:</label>';
+    $html .= '<input type="date" name="date" value="' . htmlspecialchars($_POST['date'] ?? '') . '">';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Телефон:</label>';
+    $html .= '<input type="text" name="phone" value="' . htmlspecialchars($_POST['phone'] ?? '') . '">';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Адрес:</label>';
+    $html .= '<input type="text" name="location" value="' . htmlspecialchars($_POST['location'] ?? '') . '">';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Email:</label>';
+    $html .= '<input type="email" name="email" value="' . htmlspecialchars($_POST['email'] ?? '') . '">';
+    $html .= '</div>';
+    
+    $html .= '<div class="form-group">';
+    $html .= '<label>Комментарий:</label>';
+    $html .= '<textarea name="comment">' . htmlspecialchars($_POST['comment'] ?? '') . '</textarea>';
+    $html .= '</div>';
+    
+    $html .= '<button type="submit" name="add" class="form-btn">Добавить запись</button>';
+    $html .= '</form>';
+    $html .= '</div>';
+    
+    return $html;
 }
+?>  
