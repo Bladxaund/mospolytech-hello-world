@@ -1,12 +1,10 @@
 <?php
-
-declare(strict_types=1);
-
+// Базовый класс Lesson
 class Lesson
 {
-    private string $title;
-    private string $text;
-    private string $homework;
+    protected string $title;
+    protected string $text;
+    protected string $homework;
 
     public function __construct(string $title, string $text, string $homework)
     {
@@ -15,14 +13,10 @@ class Lesson
         $this->homework = $homework;
     }
 
+    // Геттеры
     public function getTitle(): string
     {
         return $this->title;
-    }
-
-    public function setTitle(string $title): void
-    {
-        $this->title = $title;
     }
 
     public function getText(): string
@@ -30,14 +24,20 @@ class Lesson
         return $this->text;
     }
 
-    public function setText(string $text): void
-    {
-        $this->text = $text;
-    }
-
     public function getHomework(): string
     {
         return $this->homework;
+    }
+
+    // Сеттеры
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
+    }
+
+    public function setText(string $text): void
+    {
+        $this->text = $text;
     }
 
     public function setHomework(string $homework): void
@@ -46,6 +46,7 @@ class Lesson
     }
 }
 
+// Класс PaidLesson (платный урок) - наследник Lesson
 class PaidLesson extends Lesson
 {
     private float $price;
@@ -56,22 +57,27 @@ class PaidLesson extends Lesson
         $this->price = $price;
     }
 
+    // Геттер для price
     public function getPrice(): float
     {
         return $this->price;
     }
 
+    // Сеттер для price
     public function setPrice(float $price): void
     {
         $this->price = $price;
     }
 }
 
-$lesson = new PaidLesson(
+// Создаём объект PaidLesson с заданными свойствами
+$paidLesson = new PaidLesson(
     'Урок о наследовании в PHP',
     'Лол, кек, чебурек',
     'Ложитесь спать, утро вечера мудренее',
     99.90
 );
 
-var_dump($lesson);
+// Выводим объект с помощью var_dump()
+var_dump($paidLesson);
+?>
