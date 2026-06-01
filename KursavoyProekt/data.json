@@ -1,0 +1,67 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "nickname": "admin",
+            "email": "admin@travel.com",
+            "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+            "role": "admin",
+            "created_at": "2024-06-01 12:00:00"
+        },
+        {
+            "id": 2,
+            "nickname": "user",
+            "email": "user@travel.com",
+            "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+            "role": "user",
+            "created_at": "2024-06-01 12:00:00"
+        },
+        {
+            "id": 3,
+            "nickname": "Roman",
+            "email": "roman4ik0408@gmail.com",
+            "password": "$2y$12$co1bCS9NNnVQchs9HzmnFOgBJx1cSVHv2mYn7wacPnQ2rVmhaQqha",
+            "role": "user"
+        }
+    ],
+    "posts": [
+        {
+            "id": 1,
+            "title": "Париж - город мечты",
+            "content": "Париж - это невероятный город с красивой архитектурой, вкусной едой и романтичной атмосферой. Эйфелева башня, Лувр, Нотр-Дам - обязательно посетите!",
+            "category": "europe",
+            "image": "paris.jpg",
+            "created_at": "2024-06-01 12:00:00"
+        },
+        {
+            "id": 2,
+            "title": "Путешествие в Токио",
+            "content": "Токио - это город будущего. Неоновые огни, вкуснейшая еда, добрые люди. Обязательно попробуйте суши и покатайтесь на скоростных поездах.",
+            "category": "asia",
+            "image": "tokyo.jpg",
+            "created_at": "2024-06-01 12:00:00"
+        },
+        {
+            "id": 3,
+            "title": "Нью-Йорк - город, который никогда не спит",
+            "content": "Таймс-сквер, Центральный парк, Статуя Свободы - это места, которые нужно увидеть каждому. Нью-Йорк впечатляет своей энергией.",
+            "category": "america",
+            "image": "ny.jpg",
+            "created_at": "2024-06-01 12:00:00"
+        }
+    ],
+    "comments": [
+        {
+            "id": 1,
+            "post_id": 1,
+            "user_id": 1,
+            "text": "Не писать так",
+            "created_at": "2026-06-01 20:48:41"
+        }
+    ],
+    "next_id": {
+        "users": 4,
+        "posts": 4,
+        "comments": 2
+    }
+}
