@@ -1,6 +1,7 @@
 <?php include __DIR__ . '/header.php'; ?>
 
 <h1>Статьи блога</h1>
+<p><a href="/articles/add">➕ Добавить статью</a></p>
 
 <?php if (empty($articles)): ?>
     <p>Нет статей</p>
