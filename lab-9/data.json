@@ -1,0 +1,38 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "nickname": "admin",
+            "email": "admin@gmail.com",
+            "role": "admin",
+            "created_at": "2026-06-01 18:01:20"
+        },
+        {
+            "id": 2,
+            "nickname": "user",
+            "email": "user@gmail.com",
+            "role": "user",
+            "created_at": "2026-06-01 18:01:20"
+        }
+    ],
+    "articles": [
+        {
+            "id": 1,
+            "author_id": 1,
+            "name": "Статья №1",
+            "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "created_at": "2026-06-01 18:01:20"
+        },
+        {
+            "id": 2,
+            "author_id": 1,
+            "name": "Статья №2",
+            "text": "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "created_at": "2026-06-01 18:01:20"
+        }
+    ],
+    "next_id": {
+        "users": 3,
+        "articles": 3
+    }
+}
