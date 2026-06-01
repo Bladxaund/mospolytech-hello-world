@@ -1,23 +1,28 @@
 <?php
 // index.php - фронт-контроллер
 
-// Простейший роутер
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Проверяем роут /bye/{name}
+// Роут /bye/{name}
 if (preg_match('#^/bye/(.+)$#', $uri, $matches)) {
-    $name = $matches[1];
+    $name = urldecode($matches[1]);  // ← ДОБАВИТЬ ЭТУ СТРОКУ
     echo "Пока, $name";
     exit;
 }
 
-// Остальные роуты
-if ($uri == '/') {
-    include 'views/home.php';
-} elseif ($uri == '/about-me') {
+// Роут /about-me
+if ($uri == '/about-me') {
     echo "Страница обо мне";
-} else {
-    http_response_code(404);
-    echo "404 - Страница не найдена";
+    exit;
 }
+
+// Роут / (главная)
+if ($uri == '/') {
+    include 'home.php';
+    exit;
+}
+
+// 404
+http_response_code(404);
+echo "404 - Страница не найдена";
 ?>

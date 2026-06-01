@@ -28,14 +28,14 @@
             <ul>
                 <li><a href="/">Главная страница</a></li>
                 <li><a href="/about-me">Обо мне</a></li>
-                <li><a href="/bye/Иван">Сказать "Пока"</a></li>  <!-- ЭТО ДОБАВИТЬ -->
+                <li><a href="/bye/Иван">Сказать "Пока"</a></li>
             </ul>
         </td>
     </tr>
     <tr>
-        <td class="footer" colspan="2">Все права защищены (c) Мой блог</td>
+        <td class="footer" colspan="2">Все права защищены (c) Мой блог
+    
+        </table>
     </tr>
-</table>
-
 </body>
 </html>

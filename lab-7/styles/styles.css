@@ -1,0 +1,45 @@
+.layout {
+    width: 100%;
+    max-width: 1024px;
+    margin: auto;
+    background-color: white;
+    border-collapse: collapse;
+    border: 2px solid red !important;  /* Временно, для проверки */
+}
+
+.layout tr td {
+    padding: 20px;
+    vertical-align: top;
+    border: solid 1px gray !important;
+    background-color: #f9f9f9;  /* Добавили фон для ячеек */
+}
+
+.header {
+    font-size: 30px;
+    font-weight: bold;
+    background-color: #e0e0e0;
+}
+
+.footer {
+    text-align: center;
+    background-color: #e0e0e0;
+}
+
+.sidebarHeader {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.sidebar ul {
+    padding-left: 20px;
+}
+
+a, a:visited {
+    color: darkgreen;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

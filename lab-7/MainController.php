@@ -1,19 +1,18 @@
 <?php
-// app/Controllers/MainController.php
+// MainController.php
 
 class MainController
 {
     public function index()
     {
-        return view('home');
+        include 'home.php';
     }
     
     public function aboutMe()
     {
-        return view('about');
+        echo "Страница обо мне";
     }
     
-    // ЭТОТ МЕТОД ДОБАВИТЬ
     public function sayBye($name)
     {
         echo "Пока, $name";

@@ -3,5 +3,5 @@
 return [
     '/' => 'MainController@index',
     '/about-me' => 'MainController@aboutMe',
-    '/bye/{name}' => 'MainController@sayBye',  
+    '/bye/{name}' => 'MainController@sayBye',  // <- ЭТО ДОБАВИТЬ
 ];
