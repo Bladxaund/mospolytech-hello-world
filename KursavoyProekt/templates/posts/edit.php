@@ -2,6 +2,10 @@
 
 <h1>✏️ Редактирование: <?= htmlspecialchars($post->getTitle()) ?></h1>
 
+<?php if (isset($error)): ?>
+    <div class="alert alert-error"><?= $error ?></div>
+<?php endif; ?>
+
 <form method="post" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
     <div class="form-group">
         <label>Заголовок:</label>
@@ -23,8 +27,15 @@
     </div>
     
     <div class="form-group">
-        <label>Изображение:</label>
-        <input type="text" name="image" value="<?= htmlspecialchars($post->getImage()) ?>">
+        <label>Текущее изображение:</label>
+        <?php if ($post->getImage() && strpos($post->getImage(), 'http') === 0): ?>
+            <div style="margin: 10px 0;">
+                <img src="<?= htmlspecialchars($post->getImage()) ?>" alt="Текущее фото" style="max-width: 200px; border-radius: 10px;">
+            </div>
+        <?php endif; ?>
+        <label>Новая ссылка на изображение (URL):</label>
+        <input type="text" name="image_url" placeholder="https://example.com/photo.jpg" value="<?= strpos($post->getImage(), 'http') === 0 ? htmlspecialchars($post->getImage()) : '' ?>">
+        <small style="color: #999;">Оставьте пустым, чтобы сохранить текущее изображение</small>
     </div>
     
     <button type="submit" class="btn">💾 Сохранить</button>

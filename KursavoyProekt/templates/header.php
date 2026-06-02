@@ -65,6 +65,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .user-menu span {
@@ -119,6 +120,11 @@
             background: #6c757d;
         }
         
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+        
         .posts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -145,6 +151,13 @@
             align-items: center;
             justify-content: center;
             font-size: 48px;
+            overflow: hidden;
+        }
+        
+        .post-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .post-info {
@@ -157,6 +170,35 @@
             color: #333;
         }
         
+        .post-title a {
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .post-title a:hover {
+            color: #667eea;
+        }
+        
+        .post-meta {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .post-author {
+            color: #667eea;
+        }
+        
+        .post-category {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        
         .post-date {
             color: #999;
             font-size: 12px;
@@ -166,6 +208,15 @@
         .post-excerpt {
             color: #666;
             line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .post-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
         }
         
         .comments-section {
@@ -213,6 +264,49 @@
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input[type="file"] {
+            padding: 8px;
+            background: #f9f9f9;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover {
+            transform: scale(1.05);
         }
         
         footer {
@@ -231,6 +325,10 @@
             .posts-grid {
                 grid-template-columns: 1fr;
             }
+            .post-meta {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -243,22 +341,23 @@
             <p>Истории и впечатления</p>
         </div>
         <nav>
-            <a href="/">Главная</a>
-            <a href="/posts">Все статьи</a>
+            <a href="/">🏠 Главная</a>
+            <a href="/posts">📚 Все статьи</a>
         </nav>
         <div class="user-menu">
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php 
                     $currentUser = User::getById($_SESSION['user_id']);
-                    $isAdmin = $currentUser && $currentUser->isAdmin();
                 ?>
                 <?php if ($currentUser): ?>
-                    <span>👤 <?= htmlspecialchars($currentUser->getNickname()) ?></span>
-                <?php else: ?>
-                    <span>👤 Пользователь</span>
-                <?php endif; ?>
-                <?php if ($isAdmin): ?>
-                    <a href="/posts/add">➕ Добавить</a>
+                    <span>
+                        <?php if ($currentUser->isAdmin()): ?>
+                            👑 <?= htmlspecialchars($currentUser->getNickname()) ?>
+                        <?php else: ?>
+                            👤 <?= htmlspecialchars($currentUser->getNickname()) ?>
+                        <?php endif; ?>
+                    </span>
+                    <a href="/posts/add">✏️ Написать статью</a>
                 <?php endif; ?>
                 <a href="/auth/logout">🚪 Выйти</a>
             <?php else: ?>

@@ -1,0 +1,9 @@
+# Запрет прямого доступа к PHP файлам
+<FilesMatch "\.(php|php3|php4|php5|phtml|inc)$">
+    Deny from all
+</FilesMatch>
+
+# Разрешить только изображения
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+    Allow from all
+</FilesMatch>
