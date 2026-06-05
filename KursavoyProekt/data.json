@@ -21,6 +21,13 @@
             "email": "ret@yandex.ru",
             "password": "$2y$12$rWRAH7xvMOGyBtYDLjSEA.pN2vjg.TCjAG0vupfx6QorPFh4Dx11i",
             "role": "user"
+        },
+        {
+            "id": 4,
+            "nickname": "К1",
+            "email": "wertrj@yandex.ru",
+            "password": "$2y$12$FFWUrWaMe2sFWQkzt.HmRuCrT3wsQ2UXoqZoKjd5RtULbwsAR2IPK",
+            "role": "user"
         }
     ],
     "posts": [
@@ -32,6 +39,15 @@
             "image": "https:\/\/irecommend.ru\/sites\/default\/files\/imagecache\/copyright1\/user-images\/136095\/vQHBHJJcM3tHAfFsMwY0CQ.jpeg",
             "user_id": 2,
             "created_at": "2026-06-02 12:49:42"
+        },
+        {
+            "id": 3,
+            "title": "Мое путешествие в Китай",
+            "content": "ссоиылжщмфыэьмыж",
+            "category": "asia",
+            "image": "https:\/\/media.riamo.ru\/get_resized\/KBwgBe1XYX4Lh3wRFjPw1yDBdIo=\/1200x630\/filters:rs(fill-down):format(jpg)\/YXJ0aWNsZXMvaW1hZ2UvMjAyNS8xMC92aWV3LXdvcmxkLW1vbnVtZW50LWNlbGVicmF0ZS13b3JsZC1oZXJpdGFnZS1kYXkuanBn.jpg",
+            "user_id": 4,
+            "created_at": "2026-06-05 12:04:43"
         }
     ],
     "comments": [
@@ -48,11 +64,18 @@
             "user_id": 3,
             "text": "Был там, всем советую",
             "created_at": "2026-06-03 15:11:47"
+        },
+        {
+            "id": 3,
+            "post_id": 2,
+            "user_id": 1,
+            "text": ";gcsaplvS<CMsC",
+            "created_at": "2026-06-05 12:02:59"
         }
     ],
     "next_id": {
-        "users": 4,
-        "posts": 3,
-        "comments": 3
+        "users": 5,
+        "posts": 4,
+        "comments": 4
     }
 }
